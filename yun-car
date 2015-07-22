@@ -1,0 +1,108 @@
+// Sketch for the Arduino Yun board of the robot
+// The sketch transmits commands from the Uno board 
+
+// Libraries
+#include <Wire.h>
+#include <Bridge.h>
+#include <YunServer.h>
+#include <YunClient.h>
+
+// Yun server
+YunServer server;
+
+
+void setup()
+{
+
+  // Join i2c bus (address optional for master)
+  Wire.begin();
+  
+  // Start bridge
+  Bridge.begin();
+  
+  // Start Yun server
+  server.listenOnLocalhost();
+  server.begin();
+}
+
+void loop()
+{
+  
+  // Get clients coming from server
+  YunClient client = server.accept();
+
+  // There is a new client?
+  if (client) {
+    // Process request
+     process(client);
+
+    // Close connection and free resources.
+     client.stop();
+  }
+
+  // Poll every 50ms
+  delay(50); 
+  
+ 
+  
+}
+
+// Process called when the REST API is called
+void process(YunClient client) {
+  
+  if (client.readStringUntil('/') == "robot") {   
+     robotCommand(client);
+  }
+
+}
+
+// Process robot commands
+void robotCommand(YunClient client) {
+  
+  // Read command and react accordingly
+  String command = client.readStringUntil('\r');
+  
+  if (command == "stop") {
+    Serial.println("got it");
+    Wire.beginTransmission(4);
+    Wire.write(90);
+    Wire.write(",");
+    Wire.write(90);
+  
+   Wire.endTransmission();
+  }
+  
+  if (command == "GoStraight") {
+    Serial.println("got it");
+    Wire.beginTransmission(4); 
+    Wire.write(150);
+    Wire.write(",");
+    Wire.write(30);
+    
+    Wire.endTransmission();
+  }
+  
+  if (command == "turnleft") {
+    Serial.println("got it");
+    Wire.beginTransmission(4); 
+    Wire.write(90);
+    Wire.write(",");
+    Wire.write(30);
+
+    Wire.endTransmission();    
+  }
+  
+  if (command == "turnright") {
+    Serial.println("got it");
+    Wire.beginTransmission(4); 
+    Wire.write(150);
+    Wire.write(",");
+    Wire.write(90);
+ 
+    Wire.endTransmission(); 
+  }
+  
+   
+  
+}
+
